@@ -1,5 +1,5 @@
-from service.handlers.modules import *
-from service.handlers.schemas import *
+from service.handlers.env_management.src.modules import *
+from service.handlers.env_management.src.schemas import *
 from service.handlers.utils.observability import logger, tracer, metrics
 from service.handlers.utils.env_vars_parser import get_environment_variables,\
     init_environment_variables
@@ -18,8 +18,8 @@ def lambda_handler(event: dict, context: LambdaContext) -> str:
     # Getting and Setting Environment and Logging variables
     logger.set_correlation_id(context.aws_request_id)
     valid_env_vars: env_vars.MyHandlerEnvVars = get_environment_variables()
-    logger.info(f'AWS ENV Management - \
-                {str(valid_env_vars.POWERTOOLS_SERVICE_NAME)}')
+    logger.info(
+        f'AWS ENV Management - {str(valid_env_vars.POWERTOOLS_SERVICE_NAME)}')
     logger.debug('Function: lambda_handler invoked')
     logger.debug('Environment variables', extra=valid_env_vars.dict())
 
@@ -39,13 +39,16 @@ def lambda_handler(event: dict, context: LambdaContext) -> str:
     destination_uris = parsed_inputs.destination_uris
     # else:
     #     destination_uris = []
-    logger.debug('Event info and Environment variables have been \
-                 retrieved and set')
+    logger.debug(
+        'Event info and Environment variables have been retrieved and set'
+    )
 
     # Iterating through messages to get prefixes and parameters
     try:
-        logger.debug('Trying to starting messages_loop in order to\
-                      build prefixes directory')
+        logger.debug(
+            'Trying to starting messages_loop in order to build \
+                prefixes directory'
+        )
         prefixes = messages_module.messages_loop(messages)
     except:
         logger.exception('Error encountered during messages_loop')
@@ -53,8 +56,10 @@ def lambda_handler(event: dict, context: LambdaContext) -> str:
 
     # Creating new env file and an updated destination uris list
     try:
-        logger.debug('Trying to start prefixes_loop to create new env\
-                      files and a updated destination uris list')
+        logger.debug(
+            'Trying to start prefixes_loop to create new env files and \
+                a updated destination uris list'
+        )
         updated_destination_uris = prefixes_module.prefixes_loop(
             prefixes, destination_uris, s3_bucket)
     except:

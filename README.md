@@ -15,3 +15,7 @@
 # TODO: CDK
 
 # TODO: Create better README.md
+
+# TODO: refactor to allow for other env file types I.E .json .txt .toml
+
+# TODO: add failed message logic

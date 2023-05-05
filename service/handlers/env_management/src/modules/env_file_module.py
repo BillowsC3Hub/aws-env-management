@@ -18,10 +18,12 @@ def get_env_file(bucket, key):
         )["Body"].read()
     except ClientError as error:
         if error.response['Error']['Code'] == 'NoSuchKey':
-            logger.exception(f"Object key was not found in \
+            logger.exception(
+                f"Object key was not found in \
                              AWS S3 Bucket: {str(key)}", extra=bucket)
-            raise ValueError('The object key provided in incorrect: {}'
-                             .format(error))
+            raise ValueError(
+                'The object key provided in incorrect: {}'.format(error)
+            )
         else:
             raise error
     return response
@@ -40,7 +42,8 @@ def set_env_file(bucket, key, body):
                                      Bucket=bucket)
     except ClientError as error:
         logger.exception(
-            f"Unable to upload env file to S3 Bucket: {str(bucket)}")
+            f"Unable to upload env file to S3 Bucket: {str(bucket)}"
+        )
         raise RuntimeError(
             'Unable to upload env file to S3 Bucket: {}'.format(error))
     return response
@@ -66,7 +69,8 @@ def create_modified_env_file(sorted_json, labels):
             except IndexError as error:
                 logger.warn(
                     f"Labeling error occured. Label does not exist\
-                          in list: {str(L)}", extra=label_list)
+                          in list: {str(L)}", extra=label_list
+                )
             label_index = L
             c = "\n######## " + str(L) + " Variables Section #######\n\n"
             env_str += c

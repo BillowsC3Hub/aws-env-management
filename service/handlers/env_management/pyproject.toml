@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "env-management_aws-env-management"
+version = "0.1.0"
+description = ""
+authors = ["Shane E Bryan <shane.bryan@billowsc3.com>"]
+readme = "README.md"
+license = "MIT"
+packages = [{include = "env_update"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+python-dotenv = "^1.0.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.3.1"
+aws-lambda-powertools = {extras = ["aws-sdk"], version = "^2.14.1"}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

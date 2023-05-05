@@ -1,0 +1,166 @@
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "ReceiveMessages",
+  "States": {
+    "ReceiveMessages": {
+      "Type": "Task",
+      "Parameters": {
+        "QueueUrl": "https://sqs.us-west-2.amazonaws.com/686642117901/laravelEnvManagement.fifo",
+        "MaxNumberOfMessages": 10
+      },
+      "Resource": "arn:aws:states:::aws-sdk:sqs:receiveMessage",
+      "Next": "Choice - Messages"
+    },
+    "Choice - Messages": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.Messages",
+          "IsPresent": true,
+          "Next": "Lambda Invoke - env_management"
+        }
+      ],
+      "Default": "Success"
+    },
+    "Choice - Additional Messages": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.results.Messages",
+          "IsPresent": true,
+          "Next": "Pass"
+        }
+      ],
+      "Default": "Lambda Invoke - zip_stream"
+    },
+    "Pass": {
+      "Type": "Pass",
+      "Next": "Lambda Invoke - env_management",
+      "Result": {
+        "Messages.$": "$.results.Messages"
+      }
+    },
+    "Lambda Invoke - zip_stream": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-west-2:686642117901:function:ZipStream:$LATEST",
+        "Payload": {
+          "bucket": "laravel-env-management-686642117901",
+          "destination_uris": [],
+          "destination_key": "bc3/cloudfront/application/laravel/prod/env.zip",
+          "files": [
+            {
+              "uri": "bc3/cloudfront/application/laravel/prod/.env",
+              "filename": ".env",
+              "type": "file"
+            }
+          ]
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "Success"
+    },
+    "Lambda Invoke - env_management": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "arn:aws:lambda:us-west-2:686642117901:function:laravelNavManagement:$LATEST"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "SNS Publish",
+      "ResultPath": "$.LambdaResults",
+      "ResultSelector": {
+        "destination_uris.$": "$.Payload.destination_uris"
+      }
+    },
+    "SNS Publish": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "Message.$": "$",
+        "TopicArn": "arn:aws:sns:us-west-2:686642117901:testing_parameter_store"
+      },
+      "ResultPath": null,
+      "Next": "Lambda Invoke - create_batch"
+    },
+    "Lambda Invoke - create_batch": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "arn:aws:lambda:us-west-2:686642117901:function:CreateMessageDeleteBatch:$LATEST"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "DeleteMessageBatch",
+      "ResultPath": "$.Lambda2Results",
+      "ResultSelector": {
+        "Payload": {
+          "body.$": "$.Payload.body"
+        }
+      }
+    },
+    "DeleteMessageBatch": {
+      "Type": "Task",
+      "Next": "ReceiveAdditionalMessages",
+      "Parameters": {
+        "Entries.$": "$.Lambda2Results.Payload.body",
+        "QueueUrl": "https://sqs.us-west-2.amazonaws.com/686642117901/laravelEnvManagement.fifo"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:sqs:deleteMessageBatch",
+      "ResultPath": null,
+      "OutputPath": "$.LambdaResults"
+    },
+    "ReceiveAdditionalMessages": {
+      "Type": "Task",
+      "Parameters": {
+        "QueueUrl": "https://sqs.us-west-2.amazonaws.com/686642117901/laravelEnvManagement.fifo",
+        "MaxNumberOfMessages": 10
+      },
+      "Resource": "arn:aws:states:::aws-sdk:sqs:receiveMessage",
+      "Next": "Choice - Additional Messages",
+      "ResultPath": "$.results"
+    },
+    "Success": {
+      "Type": "Succeed"
+    }
+  }
+}

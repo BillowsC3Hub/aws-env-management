@@ -1,6 +1,6 @@
 import json
 
-import service.handlers.modules.parameter_module as parameter_module
+import service.handlers.env_management.src.modules.parameter_module as parameter_module
 from service.handlers.utils.observability import logger, metrics
 from aws_lambda_powertools.metrics import MetricUnit
 

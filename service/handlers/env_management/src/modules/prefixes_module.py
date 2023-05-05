@@ -2,7 +2,7 @@ import re
 from io import StringIO
 from dotenv import dotenv_values
 
-from service.handlers.modules import env_file_module
+from service.handlers.env_management.src.modules import env_file_module
 from service.handlers.utils.observability import logger, metrics
 from aws_lambda_powertools.metrics import MetricUnit
 
