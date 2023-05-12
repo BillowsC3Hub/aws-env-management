@@ -19,3 +19,5 @@
 # TODO: refactor to allow for other env file types I.E .json .txt .toml
 
 # TODO: add failed message logic
+
+# IDEA: config json file in env folder directing functon on type, destination, etc

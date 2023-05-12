@@ -1,17 +1,26 @@
 {
-  "name": "ZipStream",
-  "version": "1.0.0",
-  "description": "",
+  "name": "zipstream",
+  "version": "0.1.0",
   "main": "index.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Shane E Bryan <shane.bryan@billowsc3.com>",
+  "license": "MIT",
   "dependencies": {
-    "archiver": "^5.3.1",
-    "aws-sdk": "^2.1360.0",
-    "request": "^2.88.2",
-    "stream": "^0.0.2"
+    "@aws-lambda-powertools/logger": "^1.8.0",
+    "@aws-lambda-powertools/metrics": "^1.8.0",
+    "@aws-lambda-powertools/tracer": "^1.8.0",
+    "@types/archiver": "^5.3.2",
+    "@types/node": "^20.1.0",
+    "@types/request": "^2.48.8",
+    "aws-sdk": "^2.1360.0"
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "description": "",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.115"
   }
 }

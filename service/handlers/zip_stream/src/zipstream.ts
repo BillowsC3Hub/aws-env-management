@@ -18,7 +18,11 @@
 "use strict";
 
 
-const AWS = require("aws-sdk");
+import AWS from "aws-sdk";
+import Stream, { Pipe, Readable } from 'stream';
+import archiver from "archiver";
+import request from "request";
+
 const awsOptions = {
   //region: "us-east-1",
   httpOptions: {
@@ -27,12 +31,9 @@ const awsOptions = {
 };
 
 const s3 = new AWS.S3(awsOptions);
-const archiver = require("archiver");
-const stream = require("stream");
-const request = require("request");
 
-const streamTo = (bucket, key, resolve) => {
-  var passthrough = new stream.PassThrough();
+const streamTo = (bucket: string, key: string, resolve: any) => {
+  var passthrough = new Stream.PassThrough();
   s3.upload(
     {
       Bucket: bucket,
@@ -54,9 +55,9 @@ const streamTo = (bucket, key, resolve) => {
 
 // Kudos to this person on GitHub for this getStream solution
 // https://github.com/aws/aws-sdk-js/issues/2087#issuecomment-474722151
-const getStream = (bucket, key) => {
+const getStream = (bucket: string, key: string) => {
   let streamCreated = false;
-  const passThroughStream = new stream.PassThrough();
+  const passThroughStream = new Stream.PassThrough();
 
   passThroughStream.on("newListener", event => {
     if (!streamCreated && event == "data") {
@@ -74,37 +75,9 @@ const getStream = (bucket, key) => {
   return passThroughStream;
 };
 
-exports.handler = async (event, context, callback) => {
-  var bucket = event["bucket"];
-  var destinationKey = event["destination_key"];
-  var files = event["files"];
-
-  await new Promise(async (resolve, reject) => {
-    var zipStream = streamTo(bucket, destinationKey, resolve);
-    zipStream.on("error", reject);
-
-    var archive = archiver("zip");
-    archive.on("error", err => {
-      throw new Error(err);
-    });
-    archive.pipe(zipStream);
-
-    for (const file of files) {
-      if (file["type"] == "file") {
-        archive.append(getStream(bucket, file["uri"]), {
-          name: file["filename"]
-        });
-      } else if (file["type"] == "url") {
-        archive.append(request(file["uri"]), { name: file["filename"] });
-      }
-    }
-    archive.finalize();
-  }).catch(err => {
-    throw new Error(err);
-  });
-
-  callback(null, {
-    statusCode: 200,
-    body: { final_destination: destinationKey }
-  });
+export {
+  streamTo,
+  archiver, 
+  getStream, 
+  request
 };
